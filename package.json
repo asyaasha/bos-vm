@@ -1,12 +1,13 @@
 {
-  "name": "near-social-vm",
+  "name": "bos-vm",
   "version": "2.2.4",
-  "description": "Near Social VM",
+  "description": "BOS VM",
   "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "dependencies": {
+    "@argent/get-starknet": "^6.4.6",
     "@braintree/sanitize-url": "6.0.0",
     "@radix-ui/react-accordion": "^1.1.1",
     "@radix-ui/react-alert-dialog": "^1.0.3",
@@ -62,6 +63,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-uuid": "^1.0.2",
     "remark-gfm": "^3.0.1",
+    "starknet": "^5.12.0",
     "styled-components": "^5.3.6",
     "tweetnacl": "^1.0.3"
   },

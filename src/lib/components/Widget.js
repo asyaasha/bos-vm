@@ -1,30 +1,17 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react";
-import { useNear } from "../data/near";
-import ConfirmTransactions from "./ConfirmTransactions";
-import VM from "../vm/vm";
-import {
-  deepCopy,
-  deepEqual,
-  ErrorFallback,
-  isObject,
-  isString,
-  Loading,
-  TGas,
-} from "../data/utils";
-import { ErrorBoundary } from "react-error-boundary";
-import { useCache } from "../data/cache";
-import { CommitModal } from "./Commit";
-import { useAccountId } from "../data/account";
-import Big from "big.js";
-import uuid from "react-uuid";
-import { isFunction } from "react-bootstrap-typeahead/types/utils";
-import { EthersProviderContext } from "./ethers";
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { useNear } from '../data/near';
+import ConfirmTransactions from './ConfirmTransactions';
+import VM from '../vm/vm';
+import { deepCopy, deepEqual, ErrorFallback, isObject, isString, Loading, TGas } from '../data/utils';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useCache } from '../data/cache';
+import { CommitModal } from './Commit';
+import { useAccountId } from '../data/account';
+import Big from 'big.js';
+import uuid from 'react-uuid';
+import { isFunction } from 'react-bootstrap-typeahead/types/utils';
+import { EthersProviderContext } from './ethers';
+import { StProviderContext } from './starknet';
 
 const computeSrcOrCode = (src, code, configs) => {
   let srcOrCode = src ? { src } : code ? { code } : null;
@@ -48,15 +35,7 @@ const computeSrcOrCode = (src, code, configs) => {
 };
 
 export const Widget = React.forwardRef((props, forwardedRef) => {
-  const {
-    src: propsSrc,
-    code: propsCode,
-    depth,
-    config: propsConfig,
-    props: propsProps,
-    ...forwardedProps
-  } = props;
-
+  const { src: propsSrc, code: propsCode, depth, config: propsConfig, props: propsProps, ...forwardedProps } = props;
   const [nonce, setNonce] = useState(0);
   const [code, setCode] = useState(null);
   const [src, setSrc] = useState(null);
@@ -70,6 +49,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
   const [configs, setConfigs] = useState(null);
   const [srcOrCode, setSrcOrCode] = useState(null);
   const ethersProviderContext = useContext(EthersProviderContext);
+  const stProviderContext = useContext(StProviderContext);
 
   const cache = useCache();
   const near = useNear();
@@ -77,11 +57,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
   const [element, setElement] = useState(null);
 
   useEffect(() => {
-    const newConfigs = propsConfig
-      ? Array.isArray(propsConfig)
-        ? propsConfig
-        : [propsConfig]
-      : [];
+    const newConfigs = propsConfig ? (Array.isArray(propsConfig) ? propsConfig : [propsConfig]) : [];
     if (!deepEqual(newConfigs, configs)) {
       setConfigs(newConfigs);
     }
@@ -100,7 +76,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
     }
     if (srcOrCode?.src) {
       const src = srcOrCode.src;
-      const [srcPath, version] = src.split("@");
+      const [srcPath, version] = src.split('@');
       const code = cache.socialGet(
         near,
         srcPath.toString(),
@@ -109,7 +85,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
         undefined,
         () => {
           setNonce(nonce + 1);
-        }
+        },
       );
       setCode(code);
       setSrc(src);
@@ -124,11 +100,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
     setElement(null);
     if (!code) {
       if (code === undefined) {
-        setElement(
-          <div className="alert alert-danger">
-            Source code for "{src}" is not found
-          </div>
-        );
+        setElement(<div className="alert alert-danger">Source code for "{src}" is not found</div>);
       }
     }
   }, [code, src]);
@@ -145,10 +117,10 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
         deposit: t.deposit ? Big(t.deposit) : Big(0),
         gas: t.gas ? Big(t.gas) : TGas.mul(30),
       }));
-      console.log("confirm txs", transactions);
+      console.log('confirm txs', transactions);
       setTransactions(transactions);
     },
-    [near]
+    [near],
   );
 
   const requestCommit = useCallback(
@@ -156,10 +128,10 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
       if (!near) {
         return null;
       }
-      console.log("commit requested", commitRequest);
+      console.log('commit requested', commitRequest);
       setCommitRequest(commitRequest);
     },
-    [near]
+    [near],
   );
 
   useEffect(() => {
@@ -182,21 +154,13 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
       version: uuid(),
       widgetConfigs: configs,
       ethersProviderContext,
+      stProviderContext,
     });
     setVm(vm);
     return () => {
       vm.stop();
     };
-  }, [
-    src,
-    near,
-    code,
-    depth,
-    requestCommit,
-    confirmTransactions,
-    configs,
-    ethersProviderContext,
-  ]);
+  }, [src, near, code, depth, requestCommit, confirmTransactions, configs, ethersProviderContext, stProviderContext]);
 
   useEffect(() => {
     if (!near) {
@@ -230,27 +194,18 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
     }
     setPrevVmInput(deepCopy(vmInput));
     try {
-      setElement(vm.renderCode(vmInput) ?? "Execution failed");
+      setElement(vm.renderCode(vmInput) ?? 'Execution failed');
     } catch (e) {
       setElement(
         <div className="alert alert-danger">
           Execution error:
           <pre>{e.message}</pre>
           <pre>{e.stack}</pre>
-        </div>
+        </div>,
       );
       console.error(e);
     }
-  }, [
-    vm,
-    propsProps,
-    context,
-    state,
-    cacheNonce,
-    prevVmInput,
-    forwardedRef,
-    forwardedProps,
-  ]);
+  }, [vm, propsProps, context, state, cacheNonce, prevVmInput, forwardedRef, forwardedProps]);
 
   return element !== null && element !== undefined ? (
     <ErrorBoundary
@@ -262,12 +217,7 @@ export const Widget = React.forwardRef((props, forwardedRef) => {
     >
       <>
         {element}
-        {transactions && (
-          <ConfirmTransactions
-            transactions={transactions}
-            onHide={() => setTransactions(null)}
-          />
-        )}
+        {transactions && <ConfirmTransactions transactions={transactions} onHide={() => setTransactions(null)} />}
         {commitRequest && (
           <CommitModal
             show={true}
