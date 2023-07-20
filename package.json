@@ -6,6 +6,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "@asyaasha:registry": "https://npm.pkg.github.com"
+  },
   "dependencies": {
     "@argent/get-starknet": "^6.4.6",
     "@braintree/sanitize-url": "6.0.0",
