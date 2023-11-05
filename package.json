@@ -1,6 +1,6 @@
 {
  "name": "bos-vm",
- "version": "2.2.6",
+ "version": "2.2.7",
  "description": "BOS VM",
  "main": "dist/index.js",
  "files": [
